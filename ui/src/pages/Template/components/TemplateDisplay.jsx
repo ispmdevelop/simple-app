@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import copy from 'copy-to-clipboard';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 export default function TemplateDisplay(props) {
   const { templates, selectedTemplateId, fields, showResult } = props;
@@ -8,6 +8,7 @@ export default function TemplateDisplay(props) {
   const [showModal, setShowModal] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [injectedText, setInjectedText] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const selectedTemplate = templates.find(
     (template) => template.id === selectedTemplateId
@@ -59,6 +60,15 @@ export default function TemplateDisplay(props) {
   };
 
   useEffect(() => {
+    console.log('Change copied!', copied);
+    if (copied) {
+      setTimeout(() => {
+        setCopied(false);
+      }, 1500);
+    }
+  }, [copied]);
+
+  useEffect(() => {
     if (showResult !== true || !selectedTemplate) return;
     const initialText = selectedTemplate.body;
     if (!fields || !Array.isArray(fields)) return;
@@ -96,7 +106,7 @@ export default function TemplateDisplay(props) {
       >
         <textarea
           disabled
-          className='w-full h-full bg-transparent outline-none resize-none  text-lg '
+          className='w-full h-full bg-transparent outline-none resize-none  text-lg  '
           value={
             showResult ? response : 'Your script will be generated here...'
           }
@@ -107,14 +117,17 @@ export default function TemplateDisplay(props) {
             className='modal absolute bg-gray-200 opacity-75 flex justify-center items-center'
             style={{ width: '100%', height: '100%', left: '0', top: '0' }}
           >
-            <button
-              className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'
-              onClick={() => {
-                copy(response, { message: 'Copied to clipboard!' });
-              }}
-            >
-              Copy to Clipboard
-            </button>
+            {copied ? (
+              <div className='bg-green-500 text-white font-bold py-2 px-4 rounded'>
+                Successfully Copied!
+              </div>
+            ) : (
+              <CopyToClipboard text={response} onCopy={() => setCopied(true)}>
+                <button className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'>
+                  Copy to Clipboard
+                </button>
+              </CopyToClipboard>
+            )}
           </div>
         )}
       </div>
