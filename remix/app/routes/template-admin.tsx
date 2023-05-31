@@ -1,49 +1,62 @@
 import { useEffect, useState } from 'react';
-import { useLoaderData } from '@remix-run/react';
+import { Form, useLoaderData } from '@remix-run/react';
 import TemplateFormModal from '../components/TemplateAdmin/TemplateFormModal';
 import type { ActionArgs } from '@remix-run/node';
-import {
-  json,
-  redirect,
-  type LoaderArgs,
-  type LoaderFunction,
-} from '@remix-run/node';
-import { getTemplates } from '~/models/template.server';
+import { json, type LoaderArgs, type LoaderFunction } from '@remix-run/node';
 import type { Template } from '~/models/template.server';
-import { createTemplate, deleteTemplate } from '~/models/template.server';
+import {
+  createTemplate,
+  deleteTemplate,
+  updateTemplate,
+  getTemplates,
+} from '~/models/template.server';
 
-export const action = async ({ request, params }: ActionArgs) => {
-  const upperCaseMethod = request.method.toUpperCase();
-  const form = await request.formData();
-  const name = form.get('name');
-  const body = form.get('body');
-  const actionVerb = form.get('action');
-  console.log('modalAction', actionVerb);
-  const fields = [];
+export async function action({ request, params }: ActionArgs) {
+  try {
+    const form = await request.formData();
+    const name = form.get('name');
+    const body = form.get('body');
+    const id = form.get('id');
+    const actionVerb = form.get('action');
+    let response;
+    const fields = [];
 
-  for (let i = 0; i < 100; i++) {
-    const name = form.get(`fieldname${i}`);
-    const placeholder = form.get(`placeholder${i}`);
-    if (!name || !placeholder) break;
-    fields.push({ name, placeholder });
-  }
-
-  if (actionVerb === 'create') {
-    const template = {
-      name,
-      body,
-      fields: JSON.stringify(fields),
-    } as Template;
-    const createResponse = await createTemplate(template);
-    console.log('createResponse', createResponse);
-  } else if (actionVerb === 'update') {
-    if (params.id) {
-      const deleteResponse = deleteTemplate(+params.id);
-      // console.log('deleteResponse', deleteResponse);
+    for (let i = 0; i < 100; i++) {
+      const fieldName = form.get(`fieldname${i}`);
+      const placeholder = form.get(`placeholder${i}`);
+      if (!fieldName || !placeholder) break;
+      fields.push({ name: fieldName, placeholder });
     }
+
+    if (actionVerb === 'create') {
+      const template = {
+        name,
+        body,
+        fields: JSON.stringify(fields || []),
+      } as Template;
+      const createResponse = await createTemplate(template);
+      response = createResponse;
+    }
+    if (actionVerb === 'update') {
+      if (!id) return;
+      const template = {
+        name,
+        body,
+        fields: JSON.stringify(fields || []),
+      } as Template;
+      const updateResponse = await updateTemplate(+id, template);
+      response = updateResponse;
+    } else if (actionVerb === 'delete') {
+      if (id) {
+        const deleteResponse = await deleteTemplate(+id);
+        response = deleteResponse;
+      }
+    }
+    return json({ success: true, data: response });
+  } catch (e) {
+    return json({ success: false, data: e });
   }
-  return redirect('/template-admin');
-};
+}
 
 export type AdminTemplate = {
   id: string;
@@ -67,6 +80,10 @@ export default function TemplateAdmin() {
   const [selectedTemplate, setSelectedTemplate] = useState<
     AdminTemplate | undefined
   >(undefined);
+
+  useEffect(() => {
+    setTemplates(loaderData);
+  }, [loaderData]);
 
   const handleNewTemplate = (newTemplate: AdminTemplate) => {
     setTemplates((prevTemplates) => [...prevTemplates, newTemplate]);
@@ -110,27 +127,6 @@ export default function TemplateAdmin() {
     }
   }, [selectedTemplate, modalAction]);
 
-  const handleDeleteTemplate = async (id: string) => {
-    try {
-      const response = await fetch(`/api/template/${id}`, {
-        method: 'DELETE',
-      });
-      const data = await response.json();
-      if (data.status === 200) {
-        setTemplates((prevTemplates) => {
-          const copy = [...prevTemplates];
-          const index = copy.findIndex((template) => template.id == id);
-          if (index !== -1) {
-            copy.splice(index, 1);
-          }
-          return copy;
-        });
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
   const generateTableRow = (template: AdminTemplate, index: number) => {
     return (
       <tr key={`table-row-${template.id}`}>
@@ -153,12 +149,24 @@ export default function TemplateAdmin() {
           </button>
         </td>
         <td className='border px-4 py-2 text-center'>
-          <button
-            className='bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full'
-            onClick={() => handleDeleteTemplate(template.id)}
-          >
-            Delete
-          </button>
+          <Form method='POST'>
+            <button
+              className='bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full'
+              type='submit'
+            >
+              Delete
+            </button>
+            <input
+              name='id'
+              defaultValue={template.id}
+              style={{ display: 'none' }}
+            />
+            <input
+              name='action'
+              defaultValue={'delete'}
+              style={{ display: 'none' }}
+            />
+          </Form>
         </td>
       </tr>
     );

@@ -41,20 +41,15 @@ export default function Template() {
   };
 
   const handleSelectedTemplateId = (id: string) => {
-    console.log('handleSelectedTemplateId', id);
-    console.log('selectedTemplateId', selectedTemplateId);
     if (id == selectedTemplateId || !id) return;
     setSelectedTemplateId(id);
-    console.log('templates', templates);
     const selectedTemplate: MainTemplate | undefined = templates.find(
       (template) => template.id == id
     );
-    console.log('selectedTemplate', selectedTemplate);
     if (!selectedTemplate) return;
     let fieldObject: Field[] = [];
     try {
       fieldObject = JSON.parse(selectedTemplate.fields);
-      console.log('fieldObject');
     } catch (e) {
       console.log(e);
     }

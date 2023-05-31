@@ -1,8 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
-import type { User } from '@supabase/supabase-js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_API_KEY = process.env.SUPABASE_SERVICE_ROL_KEY || '';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_API_KEY);
 
 export interface Template {
   id?: string;
@@ -12,7 +13,6 @@ export interface Template {
 }
 
 export async function getTemplates(): Promise<Template[] | null> {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_API_KEY);
   const { data, error } = await supabase.from('template').select('*');
 
   if (error) {
@@ -25,7 +25,6 @@ export async function getTemplates(): Promise<Template[] | null> {
 export async function createTemplate(
   template: Template
 ): Promise<Template | null> {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_API_KEY);
   const { data, error } = await supabase
     .from('template')
     .insert([template])
@@ -39,8 +38,25 @@ export async function createTemplate(
   return (data as Template) || null;
 }
 
+export async function updateTemplate(
+  id: number,
+  template: Template
+): Promise<Template | null> {
+  const { data, error } = await supabase
+    .from('template')
+    .update([template])
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Error updating template: ${error.message}`);
+  }
+
+  return (data as Template) || null;
+}
+
 export async function deleteTemplate(id: number): Promise<boolean> {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_API_KEY);
   const { error } = await supabase
     .from<'template', Template>('template')
     .delete()

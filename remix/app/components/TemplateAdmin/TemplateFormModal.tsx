@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import type { AdminTemplate } from '../../routes/template-admin';
-import { Form } from '@remix-run/react';
+import type { AdminTemplate, action } from '../../routes/template-admin';
+import { Form, useActionData, useSubmit } from '@remix-run/react';
 
 type Field = {
   name: string;
@@ -38,7 +38,25 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
   const [body, setBody] = useState('');
   const [bodyError, setBodyError] = useState('');
   const [httpError, setHttpError] = useState('');
+  const submit = useSubmit();
   const [fields, setFields] = useState<Field[]>([]);
+
+  const data: any = useActionData();
+
+  useEffect(() => {
+    if (data?.success) {
+      console.log('DATA received MODAL:::', data);
+      if (modalAction === 'create') {
+        handleNewTemplate(data.data);
+        handleClose();
+      } else if (modalAction === 'update') {
+        handleUpdateTemplate(data.data);
+        handleClose();
+      }
+    } else if (data?.success === false) {
+      setHttpError(data.data);
+    }
+  }, [data]);
 
   const clearForm = () => {
     setName('');
@@ -153,76 +171,9 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    console.log('handling submit');
-    const newObj = { name, body, fields };
-    console.log(newObj);
     if (!handleValidateForm()) return;
-    return modalAction === 'update'
-      ? handlePutTemplate()
-      : handlePostTemplate();
+    submit(event.currentTarget, { replace: true });
   }
-
-  const handlePutTemplate = () => {
-    const newObj = { name, body, fields };
-    if (!selectedTemplate) return;
-    const { id } = selectedTemplate;
-    fetch(process.env.REACT_APP_API_URL + '/template/' + id, {
-      method: 'PUT',
-      body: JSON.stringify(newObj),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then((res) => {
-        if (res.status === 200) {
-          res
-            .json()
-            .then((res) => {
-              handleUpdateTemplate(res.data[0] as AdminTemplate);
-              handleClose();
-            })
-            .catch(() => setHttpError('An error has occurred while saving'));
-        } else {
-          res
-            .json()
-            .then((res) => setHttpError(res.message))
-            .catch(() => setHttpError('An error has occurred while saving'));
-        }
-      })
-      .catch((err) => {
-        setHttpError('An error has occurred while saving');
-      });
-  };
-
-  const handlePostTemplate = () => {
-    const newObj = { name, body, fields };
-    fetch(process.env.REACT_APP_API_URL + '/template', {
-      method: 'POST',
-      body: JSON.stringify(newObj),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then((res) => {
-        if (res.status === 200) {
-          res
-            .json()
-            .then((res) => {
-              handleNewTemplate(res.data[0]);
-              handleClose();
-            })
-            .catch(() => setHttpError('An error has occurred while saving'));
-        } else {
-          res
-            .json()
-            .then((res) => setHttpError(res.message))
-            .catch(() => setHttpError('An error has occurred while saving'));
-        }
-      })
-      .catch((err) => {
-        setHttpError('An error has occurred while saving');
-      });
-  };
 
   function handleAddOnBody(text: string) {
     const newBody = body + text;
@@ -230,7 +181,7 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
   }
 
   return (
-    <Form method='POST'>
+    <Form method='POST' onSubmit={handleSubmit}>
       {/* The modal */}
       {props.showModal && (
         <div className='fixed z-10 inset-0 overflow-y-auto'>
@@ -375,7 +326,14 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
                       type='text'
                       name='action'
                       id='action'
-                      value={modalAction}
+                      defaultValue={modalAction}
+                    />
+                    <input
+                      style={{ display: 'none' }}
+                      type='text'
+                      name='id'
+                      id='id'
+                      defaultValue={selectedTemplate?.id || ''}
                     />
                     <button
                       type='button'
@@ -386,47 +344,47 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
                     </button>
                   </div>
                 </div>
-              </div>
-              <div className='bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse'>
-                <button
-                  type='submit'
-                  className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2  text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm ${
-                    modalAction === 'update'
-                      ? 'bg-blue-500 hover:bg-blue-700'
-                      : 'bg-green-500 hover:bg-green-700'
-                  }`}
-                >
-                  {modalAction === 'update' ? 'Update' : 'Create'}
-                </button>
-                <button
-                  type='button'
-                  className='mt-3 w-full inline-flex justify-center rounded-md border shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm'
-                  onClick={handleClose}
-                >
-                  Cancel
-                </button>
-              </div>
-              {httpError && (
-                <div
-                  className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-1 mx-1'
-                  role='alert'
-                  onClick={() => setHttpError('')}
-                >
-                  <strong className='font-bold'>Error!</strong>
-                  <span className='block sm:inline'> {httpError}</span>
-                  <span className='absolute top-0 bottom-0 right-0 px-4 py-3'>
-                    <svg
-                      className='fill-current h-6 w-6 text-red-500'
-                      role='button'
-                      xmlns='http://www.w3.org/2000/svg'
-                      viewBox='0 0 20 20'
-                    >
-                      <title>Close</title>
-                      <path d='M14.348 14.849a1 1 0 01-1.414 0L10 11.414l-2.93 2.93a1 1 0 01-1.414-1.414l2.93-2.93-2.93-2.93a1 1 0 011.414-1.414l2.93 2.93 2.93-2.93a1 1 0 011.414 1.414l-2.93 2.93 2.93 2.93a1 1 0 010 1.414z' />
-                    </svg>
-                  </span>
+                <div className='bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse'>
+                  <button
+                    type='submit'
+                    className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2  text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm ${
+                      modalAction === 'update'
+                        ? 'bg-blue-500 hover:bg-blue-700'
+                        : 'bg-green-500 hover:bg-green-700'
+                    }`}
+                  >
+                    {modalAction === 'update' ? 'Update' : 'Create'}
+                  </button>
+                  <button
+                    type='button'
+                    className='mt-3 w-full inline-flex justify-center rounded-md border shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm'
+                    onClick={handleClose}
+                  >
+                    Cancel
+                  </button>
                 </div>
-              )}
+                {httpError && (
+                  <div
+                    className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-1 mx-1'
+                    role='alert'
+                    onClick={() => setHttpError('')}
+                  >
+                    <strong className='font-bold'>Error!</strong>
+                    <span className='block sm:inline'> {httpError}</span>
+                    <span className='absolute top-0 bottom-0 right-0 px-4 py-3'>
+                      <svg
+                        className='fill-current h-6 w-6 text-red-500'
+                        role='button'
+                        xmlns='http://www.w3.org/2000/svg'
+                        viewBox='0 0 20 20'
+                      >
+                        <title>Close</title>
+                        <path d='M14.348 14.849a1 1 0 01-1.414 0L10 11.414l-2.93 2.93a1 1 0 01-1.414-1.414l2.93-2.93-2.93-2.93a1 1 0 011.414-1.414l2.93 2.93 2.93-2.93a1 1 0 011.414 1.414l-2.93 2.93 2.93 2.93a1 1 0 010 1.414z' />
+                      </svg>
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
