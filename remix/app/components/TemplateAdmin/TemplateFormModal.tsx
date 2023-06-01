@@ -2,17 +2,10 @@ import { useState, useEffect } from 'react';
 import type { AdminTemplate } from '../../routes/template-admin';
 import { Form, useActionData, useSubmit } from '@remix-run/react';
 
-type Field = {
-  name: string;
-  question: string;
-  error?: string;
-};
-
 export type FormModalTemplate = {
   id: string;
   name: string;
   body: string;
-  fields: Field[];
   preview: string;
   initialPrompt: string;
 };
@@ -41,11 +34,8 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
   const [initialPromptError, setInitialPromptError] = useState('');
   const [preview, setPreview] = useState('');
   const [previewError, setPreviewError] = useState('');
-  const [body, setBody] = useState('');
-  const [bodyError, setBodyError] = useState('');
   const [httpError, setHttpError] = useState('');
   const submit = useSubmit();
-  const [fields, setFields] = useState<Field[]>([]);
 
   const formResponse: any = useActionData();
 
@@ -65,15 +55,12 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
 
   const clearForm = () => {
     setName('');
-    setBody('');
-    setFields([]);
     setInitialPrompt('');
     setPreview('');
     setInitialPromptError('');
     setPreviewError('');
     setHttpError('');
     setNameError('');
-    setBodyError('');
   };
 
   const handleClose = () => {
@@ -84,8 +71,6 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
   useEffect(() => {
     if (selectedTemplate && modalAction === 'update') {
       setName(selectedTemplate.name);
-      setBody(selectedTemplate.body);
-      setFields(JSON.parse(selectedTemplate.fields) as Field[]);
       setInitialPrompt(selectedTemplate.initialPrompt);
       setPreview(selectedTemplate.preview);
     }
@@ -95,7 +80,6 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
     let isValid = true;
     const formFields = [
       { label: 'Name', value: name, setErrorFn: setNameError },
-      { label: 'body', value: body, setErrorFn: setBodyError },
       {
         label: 'Initial Prompt',
         value: initialPrompt,
@@ -112,35 +96,6 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
       }
     });
 
-    fields.forEach((field, index) => {
-      if (!field.name || !field.question) {
-        const newFields = [...fields];
-        newFields[index].error = 'Name and question are required';
-        setFields(newFields);
-        isValid = false;
-      } else {
-        const newFields = [...fields];
-        newFields[index].error = '';
-        setFields(newFields);
-      }
-    });
-
-    const areFieldNamesUnique = fields.every(
-      (field, index) => fields.findIndex((f) => f.name === field.name) === index
-    );
-    if (!areFieldNamesUnique) {
-      const newFields = [...fields];
-      newFields.forEach((field, index) => {
-        const isDuplicate =
-          newFields.findIndex((f) => f.name === field.name) !== index;
-        if (isDuplicate) {
-          newFields[index].error = 'Field names must be unique';
-        }
-      });
-      setFields(newFields);
-      isValid = false;
-    }
-
     return isValid;
   };
 
@@ -150,54 +105,14 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
     const { name, value } = event.target;
 
     if (name === 'name') setName(value);
-    else if (name === 'body') setBody(value);
     else if (name === 'preview') setPreview(value);
     else if (name === 'initialPrompt') setInitialPrompt(value);
-    else if (name.startsWith('fieldname')) {
-      const index = parseInt(name.replace('fieldname', ''));
-      const newFields = [...fields];
-      const previousName = newFields[index].name;
-      newFields[index].name = value;
-      const exp = new RegExp(`\\$\\{${previousName}\\}`, 'gm');
-      const newText = body.replace(exp, `\${${value}}`);
-      setBody(newText);
-      setFields(newFields);
-    } else if (name.startsWith('question')) {
-      const index = parseInt(name.replace('question', ''));
-      const newFields = [...fields];
-      newFields[index].question = value;
-      setFields(newFields);
-    }
-  };
-
-  const handleFieldAdd = () => {
-    const newField: Field = {
-      name: '',
-      question: '',
-    };
-    setFields([...fields, newField]);
-  };
-
-  const handleDeleteField = (index: number) => {
-    const newFields = [...fields];
-    newFields.splice(index, 1);
-    setFields(newFields);
-    const newBody = body.replace(
-      new RegExp(`\\$\\{${fields[index].name}\\}`, 'gm'),
-      ''
-    );
-    setBody(newBody);
   };
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!handleValidateForm()) return;
     submit(event.currentTarget, { replace: true });
-  }
-
-  function handleAddOnBody(text: string) {
-    const newBody = body + text;
-    setBody(newBody);
   }
 
   return (
@@ -294,95 +209,8 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
                       </p>
                     )}
 
-                    {/* Body textarea */}
-                    <label
-                      htmlFor='body'
-                      className='block text-md font-medium text-gray-700 mt-4'
-                    >
-                      Body:
-                    </label>
-                    <textarea
-                      name='body'
-                      id='body'
-                      value={body}
-                      onChange={handleChange}
-                      className={`mt-1 p-2 block w-full border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-56 ${
-                        bodyError ? 'border-red-500' : ''
-                      }`}
-                    ></textarea>
-                    {bodyError && (
-                      <p className='text-red-500 text-xs italic p-0 mt-1'>
-                        {bodyError}
-                      </p>
-                    )}
-
                     <hr className='border border-1 border-gray-200 mt-4 mb-3' />
                     {/* Fields dynamic form section */}
-                    {fields.map((field, index) => (
-                      <div key={`field-${index}`}>
-                        <div className='w-full flex gap-5'>
-                          <div className='w-full'>
-                            <label
-                              htmlFor={`fieldname${index}`}
-                              className='text-md font-medium text-gray-700'
-                            >
-                              Field Name:
-                            </label>
-                            <input
-                              type='text'
-                              name={`fieldname${index}`}
-                              id={`fieldname${index}`}
-                              value={field.name}
-                              onChange={handleChange}
-                              className='mt-1 mb-4 p-1 w-full border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm'
-                            />
-                          </div>
-                          <div className='w-full'>
-                            <label
-                              htmlFor={`question${index}`}
-                              className='text-md font-medium text-gray-700'
-                            >
-                              question:
-                            </label>
-                            <input
-                              type='text'
-                              name={`question${index}`}
-                              id={`question${index}`}
-                              value={field.question}
-                              onChange={handleChange}
-                              className='mt-1 mb-4 p-1 w-full border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm'
-                            />
-                          </div>
-                          <div className='w-6/12 flex flex-row gap-4 items-center'>
-                            <div>
-                              <button
-                                className='bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:bg-gray-500'
-                                disabled={!field.name}
-                                onClick={() =>
-                                  handleAddOnBody.bind(`\${${field.name}}`)
-                                }
-                              >
-                                +
-                              </button>
-                            </div>
-                            <div>
-                              <button
-                                className='bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded'
-                                onClick={() => handleDeleteField(index)}
-                              >
-                                x
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                        {field.error && (
-                          <p className='text-red-500 text-xs italic p-0 m-0'>
-                            {field.error}
-                          </p>
-                        )}
-                        <hr className='border border-1 border-gray-200 my-3' />
-                      </div>
-                    ))}
                     <input
                       style={{ display: 'none' }}
                       type='text'
@@ -397,13 +225,6 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
                       id='id'
                       defaultValue={selectedTemplate?.id || ''}
                     />
-                    <button
-                      type='button'
-                      onClick={handleFieldAdd}
-                      className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'
-                    >
-                      Add Field
-                    </button>
                   </div>
                 </div>
                 <div className='bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse'>

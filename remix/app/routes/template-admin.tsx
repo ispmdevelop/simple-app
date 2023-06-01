@@ -15,31 +15,17 @@ export async function action({ request, params }: ActionArgs) {
   try {
     const form = await request.formData();
     const name = form.get('name');
-    const body = form.get('body');
     const id = form.get('id');
     const preview = form.get('preview');
     const initialPrompt = form.get('initialPrompt');
     const actionVerb = form.get('action');
     let response;
-    const fields = [];
-
-    console.log('preview', preview);
-    console.log('initialPrompt', preview);
-
-    for (let i = 0; i < 100; i++) {
-      const fieldName = form.get(`fieldname${i}`);
-      const question = form.get(`question${i}`);
-      if (!fieldName || !question) break;
-      fields.push({ name: fieldName, question });
-    }
 
     if (actionVerb === 'create') {
       const template = {
         name,
-        body,
         preview,
         initialPrompt,
-        fields: JSON.stringify(fields || []),
       } as Template;
       const createResponse = await createTemplate(template);
       response = createResponse;
@@ -48,10 +34,8 @@ export async function action({ request, params }: ActionArgs) {
       if (!id) return;
       const template = {
         name,
-        body,
         preview,
         initialPrompt,
-        fields: JSON.stringify(fields || []),
       } as Template;
       const updateResponse = await updateTemplate(+id, template);
       response = updateResponse;
@@ -69,8 +53,6 @@ export async function action({ request, params }: ActionArgs) {
 
 export type AdminTemplate = {
   id: string;
-  body: string;
-  fields: string;
   name: string;
   preview: string;
   initialPrompt: string;
@@ -144,12 +126,7 @@ export default function TemplateAdmin() {
         <td className='border px-4 py-2'>{index + 1}</td>
         <td className='border px-4 py-2'>{template.name}</td>
         <td className='border px-4 py-2'>
-          {template.body.substring(0, 200) + '...'}
-        </td>
-        <td className='border px-4 py-2 '>
-          {JSON.parse(template.fields)
-            .map((field: { name: string }) => field.name)
-            .join(' | ') || 'No fields found.'}
+          {template.preview.substring(0, 200) + '...'}
         </td>
         <td className='border px-4 py-2 text-center'>
           <button
@@ -191,8 +168,7 @@ export default function TemplateAdmin() {
             <tr className='bg-gray-200'>
               <th className='px-4 py-2'>#</th>
               <th className='px-4 py-2'>Name</th>
-              <th className='px-4 py-2'>Body</th>
-              <th className='px-4 py-2'>Fields</th>
+              <th className='px-4 py-2'>Preview</th>
               <th className='px-4 py-2 text-center'>Edit</th>
               <th className='px-4 py-2 text-center'>Delete</th>
             </tr>

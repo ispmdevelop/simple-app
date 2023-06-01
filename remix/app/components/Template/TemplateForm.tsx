@@ -4,40 +4,26 @@ import { ScrollArea } from 'app/components/ui/scroll-area';
 interface TemplateFormProps {
   templates: FormTemplate[];
   setTemplateSelected: (templateId: string) => void;
-  fields: Field[];
-  handleSetFields: (name: string, value: string, error: string) => void;
   setShowResult: (value: boolean) => void;
   showResult: boolean;
   selectedTemplateId: string | null;
-  resetFields: () => void;
 }
 
 interface FormTemplate {
   id: string;
   body: string;
-  fields: string;
   name: string;
   preview: string;
   initialPrompt: string;
-}
-
-interface Field {
-  name: string;
-  question?: string;
-  value: string;
-  error?: string;
 }
 
 export default function TemplateForm(props: TemplateFormProps) {
   const {
     templates,
     setTemplateSelected,
-    fields,
-    handleSetFields,
     setShowResult,
     showResult,
     selectedTemplateId,
-    resetFields,
   } = props;
 
   const capitalize = (str: string) => {

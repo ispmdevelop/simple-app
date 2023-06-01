@@ -8,7 +8,6 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_API_KEY);
 export interface Template {
   id?: string;
   body: string;
-  fields: string;
   name: string;
   preview: string;
   initialPrompt: string;

@@ -4,25 +4,17 @@ import { Button, buttonVariants } from '../../components/ui/button';
 type TemplateDisplayProps = {
   templates: DisplayTemplate[];
   selectedTemplateId: string | null;
-  fields: Field[];
   showResult: boolean;
 };
 
 type DisplayTemplate = {
   id: string;
-  fields: string;
-  body: string;
   preview: string;
   initialPrompt: string;
 };
 
-type Field = {
-  name: string;
-  value: string;
-};
-
 export default function TemplateDisplay(props: TemplateDisplayProps) {
-  const { templates, selectedTemplateId, fields, showResult } = props;
+  const { templates, selectedTemplateId, showResult } = props;
 
   const [response, setResponse] = useState('');
 
