@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import type { AdminTemplate, action } from '../../routes/template-admin';
+import type { AdminTemplate } from '../../routes/template-admin';
 import { Form, useActionData, useSubmit } from '@remix-run/react';
 
 type Field = {
   name: string;
-  placeholder: string;
+  question: string;
   error?: string;
 };
 
@@ -13,6 +13,8 @@ export type FormModalTemplate = {
   name: string;
   body: string;
   fields: Field[];
+  preview: string;
+  initialPrompt: string;
 };
 
 interface TemplateFormModalProps {
@@ -35,33 +37,40 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
 
   const [name, setName] = useState('');
   const [nameError, setNameError] = useState('');
+  const [initialPrompt, setInitialPrompt] = useState('');
+  const [initialPromptError, setInitialPromptError] = useState('');
+  const [preview, setPreview] = useState('');
+  const [previewError, setPreviewError] = useState('');
   const [body, setBody] = useState('');
   const [bodyError, setBodyError] = useState('');
   const [httpError, setHttpError] = useState('');
   const submit = useSubmit();
   const [fields, setFields] = useState<Field[]>([]);
 
-  const data: any = useActionData();
+  const formResponse: any = useActionData();
 
   useEffect(() => {
-    if (data?.success) {
-      console.log('DATA received MODAL:::', data);
+    if (formResponse?.success) {
       if (modalAction === 'create') {
-        handleNewTemplate(data.data);
+        handleNewTemplate(formResponse.data);
         handleClose();
       } else if (modalAction === 'update') {
-        handleUpdateTemplate(data.data);
+        handleUpdateTemplate(formResponse.data);
         handleClose();
       }
-    } else if (data?.success === false) {
-      setHttpError(data.data);
+    } else if (formResponse?.success === false) {
+      setHttpError(formResponse.data.message);
     }
-  }, [data]);
+  }, [formResponse]);
 
   const clearForm = () => {
     setName('');
     setBody('');
     setFields([]);
+    setInitialPrompt('');
+    setPreview('');
+    setInitialPromptError('');
+    setPreviewError('');
     setHttpError('');
     setNameError('');
     setBodyError('');
@@ -77,27 +86,36 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
       setName(selectedTemplate.name);
       setBody(selectedTemplate.body);
       setFields(JSON.parse(selectedTemplate.fields) as Field[]);
+      setInitialPrompt(selectedTemplate.initialPrompt);
+      setPreview(selectedTemplate.preview);
     }
   }, [selectedTemplate, modalAction]);
 
   const handleValidateForm = () => {
     let isValid = true;
-    if (!name) {
-      setNameError('Name is required');
-      isValid = false;
-    } else {
-      setNameError('');
-    }
-    if (!body) {
-      setBodyError('Body is required');
-      isValid = false;
-    } else {
-      setBodyError('');
-    }
+    const formFields = [
+      { label: 'Name', value: name, setErrorFn: setNameError },
+      { label: 'body', value: body, setErrorFn: setBodyError },
+      {
+        label: 'Initial Prompt',
+        value: initialPrompt,
+        setErrorFn: setInitialPromptError,
+      },
+      { label: 'Preview', value: preview, setErrorFn: setPreviewError },
+    ];
+
+    formFields.forEach((field) => {
+      if (!field.value) {
+        field.setErrorFn(`${field.label} is required`);
+      } else {
+        field.setErrorFn('');
+      }
+    });
+
     fields.forEach((field, index) => {
-      if (!field.name || !field.placeholder) {
+      if (!field.name || !field.question) {
         const newFields = [...fields];
-        newFields[index].error = 'Name and placeholder are required';
+        newFields[index].error = 'Name and question are required';
         setFields(newFields);
         isValid = false;
       } else {
@@ -133,6 +151,8 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
 
     if (name === 'name') setName(value);
     else if (name === 'body') setBody(value);
+    else if (name === 'preview') setPreview(value);
+    else if (name === 'initialPrompt') setInitialPrompt(value);
     else if (name.startsWith('fieldname')) {
       const index = parseInt(name.replace('fieldname', ''));
       const newFields = [...fields];
@@ -142,10 +162,10 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
       const newText = body.replace(exp, `\${${value}}`);
       setBody(newText);
       setFields(newFields);
-    } else if (name.startsWith('placeholder')) {
-      const index = parseInt(name.replace('placeholder', ''));
+    } else if (name.startsWith('question')) {
+      const index = parseInt(name.replace('question', ''));
       const newFields = [...fields];
-      newFields[index].placeholder = value;
+      newFields[index].question = value;
       setFields(newFields);
     }
   };
@@ -153,7 +173,7 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
   const handleFieldAdd = () => {
     const newField: Field = {
       name: '',
-      placeholder: '',
+      question: '',
     };
     setFields([...fields, newField]);
   };
@@ -232,6 +252,48 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
                       </p>
                     )}
 
+                    <label
+                      htmlFor='initialPrompt'
+                      className='block text-md font-medium text-gray-700 mt-4'
+                    >
+                      Initial Prompt:
+                    </label>
+                    <textarea
+                      name='initialPrompt'
+                      id='initialPrompt'
+                      value={initialPrompt}
+                      onChange={handleChange}
+                      className={`mt-1 p-2 block w-full border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-56 ${
+                        initialPromptError ? 'border-red-500' : ''
+                      }`}
+                    ></textarea>
+                    {initialPromptError && (
+                      <p className='text-red-500 text-xs italic p-0 mt-1'>
+                        {initialPromptError}
+                      </p>
+                    )}
+
+                    <label
+                      htmlFor='preview'
+                      className='block text-md font-medium text-gray-700 mt-4'
+                    >
+                      Script Preview:
+                    </label>
+                    <textarea
+                      name='preview'
+                      id='preview'
+                      value={preview}
+                      onChange={handleChange}
+                      className={`mt-1 p-2 block w-full border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-56 ${
+                        previewError ? 'border-red-500' : ''
+                      }`}
+                    ></textarea>
+                    {previewError && (
+                      <p className='text-red-500 text-xs italic p-0 mt-1'>
+                        {previewError}
+                      </p>
+                    )}
+
                     {/* Body textarea */}
                     <label
                       htmlFor='body'
@@ -277,16 +339,16 @@ export default function TemplateFormModal(props: TemplateFormModalProps) {
                           </div>
                           <div className='w-full'>
                             <label
-                              htmlFor={`placeholder${index}`}
+                              htmlFor={`question${index}`}
                               className='text-md font-medium text-gray-700'
                             >
-                              Placeholder:
+                              question:
                             </label>
                             <input
                               type='text'
-                              name={`placeholder${index}`}
-                              id={`placeholder${index}`}
-                              value={field.placeholder}
+                              name={`question${index}`}
+                              id={`question${index}`}
+                              value={field.question}
                               onChange={handleChange}
                               className='mt-1 mb-4 p-1 w-full border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm'
                             />

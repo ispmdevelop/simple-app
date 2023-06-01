@@ -10,6 +10,8 @@ export interface Template {
   body: string;
   fields: string;
   name: string;
+  preview: string;
+  initialPrompt: string;
 }
 
 export async function getTemplates(): Promise<Template[] | null> {

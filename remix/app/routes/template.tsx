@@ -11,6 +11,8 @@ type MainTemplate = {
   body: string;
   fields: string;
   name: string;
+  preview: string;
+  initialPrompt: string;
 };
 
 type Field = {

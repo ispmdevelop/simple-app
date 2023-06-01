@@ -1,3 +1,6 @@
+import { Checkbox } from '../ui/checkbox';
+import { ScrollArea } from 'app/components/ui/scroll-area';
+
 interface TemplateFormProps {
   templates: FormTemplate[];
   setTemplateSelected: (templateId: string) => void;
@@ -14,11 +17,13 @@ interface FormTemplate {
   body: string;
   fields: string;
   name: string;
+  preview: string;
+  initialPrompt: string;
 }
 
 interface Field {
   name: string;
-  placeholder?: string;
+  question?: string;
   value: string;
   error?: string;
 }
@@ -35,150 +40,48 @@ export default function TemplateForm(props: TemplateFormProps) {
     resetFields,
   } = props;
 
-  const onFieldValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    handleSetFields(name, value, '');
-  };
-
-  const handleRetry = () => {
-    setShowResult(false);
-    resetFields();
-  };
-
-  const handleGenerateSubmit = () => {
-    validateForm();
-    if (isFormCompleted()) {
-      setShowResult(true);
-    }
-  };
-
   const capitalize = (str: string) => {
     if (!str || str.length <= 0) return str;
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
-  const getInputFields = () => {
-    if (!fields || !Array.isArray(fields)) return null;
-    return fields.map((field) => {
-      const name = field.name;
-      const placeholder = field.placeholder || name;
-      return (
-        <div
-          key={`field-${selectedTemplateId}-${name}`}
-          className='flex flex-col'
-        >
-          <label className='text-left ml-1' htmlFor={name}>
-            {capitalize(placeholder || '')}
-          </label>
-          <input
-            type='text'
-            name={name}
-            id={name}
-            className={`border rounded py-2 px-3 w-full m-auto ${
-              field.error ? 'border-red-500' : ''
-            }`}
-            value={field.value || ''}
-            placeholder={capitalize(placeholder || '')}
-            onChange={onFieldValueChange}
-            disabled={showResult ? true : false}
-          />
-          {field.error && <span className='text-red-500'>{field.error}</span>}
-        </div>
-      );
-    });
-  };
-
-  const handleSelectedTemplateId = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const templateId = event.target.value;
+  const handleSelectedTemplateId = (templateId: string) => {
+    console.log('selected template id', templateId);
     setTemplateSelected(templateId);
   };
 
-  const isFormCompleted = () => {
-    if (!selectedTemplateId) return false;
-    if (!fields || !Array.isArray(fields)) return false;
-    const isAllFieldsFilled = fields.every((field) => {
-      const value = field.value;
-      if (value && value.length > 0) {
-        return true;
-      } else {
-        handleSetFields(field.name, field.value, 'Missing value');
-        return false;
-      }
-    });
-    return isAllFieldsFilled;
-  };
-
-  const validateForm = () => {
-    if (!selectedTemplateId) return;
-    if (!fields || !Array.isArray(fields)) return;
-    fields.forEach((field) => {
-      const value = field.value;
-      if (!value || value.length <= 0) {
-        handleSetFields(field.name, field.value, 'Missing value');
-      }
-    });
-  };
-
-  const getGenerateButton = () => {
-    if (showResult || !selectedTemplateId) {
+  const getTemplateListWithCheckbox = () => {
+    return templates.map((template) => {
+      const checked = selectedTemplateId == template.id;
       return (
-        <div className='flex w-full gap-5'>
-          <button className='bg-neutral-500 text-white px-4 py-2 rounded disabled:opacity-50 cursor-not-allowed hover:bg-neutral w-full'>
-            Generate
-          </button>
-          {showResult && (
-            <button
-              className='bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full'
-              onClick={handleRetry}
-            >
-              Retry
-            </button>
-          )}
+        <div key={template.id} className='flex flex-row items-center'>
+          <Checkbox
+            className={`text-red-700 mr-2 rounded   ${
+              checked ? 'border border-neutral-950' : ''
+            }`}
+            name='template'
+            value={template.id}
+            checked={checked}
+            onClick={(event) => handleSelectedTemplateId(template.id)}
+          />
+          <label className='text-base break-words whitespace-normal'>
+            {template.name}
+          </label>
         </div>
       );
-    }
-    return (
-      <button
-        className='bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600'
-        type='submit'
-        onClick={handleGenerateSubmit}
-      >
-        Generate
-      </button>
-    );
+    });
   };
 
   return (
-    <div className='w-4/6 px-3 max-w-xl mx-auto text-center'>
-      <h1 className='text-2xl my-5'>Create Your Script:</h1>
-      <div>
-        <div className='flex flex-col justify-center w-full m-0 gap-5'>
-          <select
-            className='border rounded py-2 px-3'
-            onChange={handleSelectedTemplateId}
-            value={selectedTemplateId || undefined}
-            defaultValue=''
-          >
-            <option value='' disabled>
-              Script Type
-            </option>
-            {templates &&
-              templates.map((template) => (
-                <option
-                  key={`template-option-${template.id}`}
-                  value={template.id}
-                >
-                  {capitalize(template.name || '')}
-                </option>
-              ))}
-          </select>
-          {getInputFields()}
-          {getGenerateButton()}
+    <ScrollArea className='h-screen w-2/6 border-r-2'>
+      <div className='w-6/6 max-w-xl ml-6 mr-3'>
+        <h1 className='text-base my-5 font-bold '>Templates:</h1>
+        <div>
+          <div className='flex flex-col justify-left w-full m-0 gap-2'>
+            {getTemplateListWithCheckbox()}
+          </div>
         </div>
       </div>
-    </div>
+    </ScrollArea>
   );
 }

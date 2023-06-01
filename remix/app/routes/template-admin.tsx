@@ -17,21 +17,28 @@ export async function action({ request, params }: ActionArgs) {
     const name = form.get('name');
     const body = form.get('body');
     const id = form.get('id');
+    const preview = form.get('preview');
+    const initialPrompt = form.get('initialPrompt');
     const actionVerb = form.get('action');
     let response;
     const fields = [];
 
+    console.log('preview', preview);
+    console.log('initialPrompt', preview);
+
     for (let i = 0; i < 100; i++) {
       const fieldName = form.get(`fieldname${i}`);
-      const placeholder = form.get(`placeholder${i}`);
-      if (!fieldName || !placeholder) break;
-      fields.push({ name: fieldName, placeholder });
+      const question = form.get(`question${i}`);
+      if (!fieldName || !question) break;
+      fields.push({ name: fieldName, question });
     }
 
     if (actionVerb === 'create') {
       const template = {
         name,
         body,
+        preview,
+        initialPrompt,
         fields: JSON.stringify(fields || []),
       } as Template;
       const createResponse = await createTemplate(template);
@@ -42,6 +49,8 @@ export async function action({ request, params }: ActionArgs) {
       const template = {
         name,
         body,
+        preview,
+        initialPrompt,
         fields: JSON.stringify(fields || []),
       } as Template;
       const updateResponse = await updateTemplate(+id, template);
@@ -63,6 +72,8 @@ export type AdminTemplate = {
   body: string;
   fields: string;
   name: string;
+  preview: string;
+  initialPrompt: string;
 };
 
 export let loader: LoaderFunction = async ({ request }: LoaderArgs) => {
