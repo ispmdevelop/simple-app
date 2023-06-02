@@ -6,11 +6,13 @@ const SUPABASE_API_KEY = process.env.SUPABASE_SERVICE_ROL_KEY || '';
 export interface Message {
   role: string;
   content: string;
+  tokenCount?: number;
 }
 
 export interface ChatRun {
   id?: string;
   messages: Message[];
+  targetTokenCount: number | undefined;
 }
 
 export async function getChatRuns(): Promise<ChatRun[] | null> {

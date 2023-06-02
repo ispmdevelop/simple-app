@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import axios from 'axios';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_API_KEY = process.env.SUPABASE_SERVICE_ROL_KEY || '';

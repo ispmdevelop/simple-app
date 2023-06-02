@@ -6,26 +6,31 @@ import { createChatRun } from '../models/chat-run.server';
 
 import { ChatCompletionRequestMessageRoleEnum } from 'openai';
 
+type ChatGPTMessage = {
+  role: ChatCompletionRequestMessageRoleEnum;
+  content: string;
+  tokenCount?: number;
+};
+
 export const loader: LoaderFunction = async ({ request, params }) => {
   const templateId = params?.templateId;
   if (!templateId) return redirect('/');
   const template = await getTemplatesById(+templateId);
   if (!template) return redirect('/');
-  const messages:
-    | { role: ChatCompletionRequestMessageRoleEnum; content: string }[]
-    | undefined = [
+  const messages: ChatGPTMessage[] | undefined = [
     {
       role: ChatCompletionRequestMessageRoleEnum.User,
       content: template.initialPrompt,
     },
   ];
   const aiResponse = await chatCompletion(messages);
-  const message = aiResponse.choices[0].message as {
-    role: ChatCompletionRequestMessageRoleEnum;
-    content: string;
-  };
+  const message = aiResponse.choices[0].message as ChatGPTMessage;
   messages.push(message);
-  const response = await createChatRun({ messages });
+  if (aiResponse.usage?.completion_tokens === undefined) return redirect('/');
+  const response = await createChatRun({
+    messages,
+    targetTokenCount: aiResponse.usage.prompt_tokens / 3 ?? 300,
+  });
   if (!response) return redirect('/');
   return redirect(`/chat-run/${response.id}`);
 };
