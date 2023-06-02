@@ -15,7 +15,7 @@ type ChatGPTMessage = {
 export const loader: LoaderFunction = async ({ request, params }) => {
   const templateId = params?.templateId;
   if (!templateId) return redirect('/');
-  const template = await getTemplatesById(+templateId);
+  const template = await getTemplatesById(templateId);
   if (!template) return redirect('/');
   const messages: ChatGPTMessage[] | undefined = [
     {

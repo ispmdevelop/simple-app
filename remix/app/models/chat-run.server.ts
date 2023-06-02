@@ -12,7 +12,7 @@ export interface Message {
 export interface ChatRun {
   id?: string;
   messages: Message[];
-  targetTokenCount: number | undefined;
+  targetTokenCount?: number | undefined;
 }
 
 export async function getChatRuns(): Promise<ChatRun[] | null> {

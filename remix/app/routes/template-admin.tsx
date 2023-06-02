@@ -38,16 +38,17 @@ export async function action({ request, params }: ActionArgs) {
         preview,
         initialPrompt,
       } as Template;
-      const updateResponse = await updateTemplate(+id, template);
+      const updateResponse = await updateTemplate(id + '', template);
       response = updateResponse;
     } else if (actionVerb === 'delete') {
       if (id) {
-        const deleteResponse = await deleteTemplate(+id);
+        const deleteResponse = await deleteTemplate(id + '');
         response = deleteResponse;
       }
     }
     return json({ success: true, data: response });
   } catch (e) {
+    console.log('Error when posting message', e);
     return json({ success: false, data: e });
   }
 }
@@ -127,7 +128,7 @@ export default function TemplateAdmin() {
         <td className='border px-4 py-2'>{index + 1}</td>
         <td className='border px-4 py-2'>{template.name}</td>
         <td className='border px-4 py-2'>
-          {template.preview.substring(0, 200) + '...'}
+          {template.preview?.substring(0, 200) + '...'}
         </td>
         <td className='border px-4 py-2 text-center'>
           <button
