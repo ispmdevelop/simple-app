@@ -11,6 +11,7 @@ import {
   useParams,
   useActionData,
   useNavigation,
+  useSubmit,
 } from '@remix-run/react';
 import { useEffect, useState, useRef } from 'react';
 import type {
@@ -60,7 +61,6 @@ export async function action({ request, params }: ActionArgs) {
 }
 
 export const loader: LoaderFunction = async ({ request, params }) => {
-  console.log('params', params);
   if (params?.runId === undefined) return json({});
   const chatRun = await getChatRunsById(params?.runId);
   return json(chatRun);
@@ -68,29 +68,26 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
 export default function ChatRun() {
   const loaderData = useLoaderData<ChatRunDto | null>();
+  const [chatRun, setChatRun] = useState<ChatRunDto | null>(loaderData);
   const routeParams = useParams();
   const actionData = useActionData<ChatRunDto | string>();
   const [message, setMessage] = useState<string>();
   const [chatOver, setChatOver] = useState(false);
   const [copied, setCopied] = useState(false);
+  const submit = useSubmit();
 
   const navigation = useNavigation();
   const scrollRef = useRef<HTMLDivElement>();
 
   useEffect(() => {
-    console.log('loaderData', loaderData);
+    setChatRun(loaderData);
     isFinalScriptResponse(loaderData?.messages || []);
   }, [loaderData]);
-
-  useEffect(() => {
-    console.log('actionData', actionData);
-  }, [actionData]);
 
   useEffect(() => {
     if (navigation.state === 'submitting') {
       setMessage('');
     }
-    console.log(scrollRef.current);
     scrollRef.current?.scrollIntoView(false);
   }, [navigation.state]);
 
@@ -146,17 +143,27 @@ export default function ChatRun() {
 
   const isFinalScriptResponse = (messages: ChatRunMessage[]) => {
     if (chatOver) return;
-    if (!loaderData) return false;
+    if (!chatRun) return false;
     messages.forEach((message) => {
-      if (!message.tokenCount || !loaderData?.targetTokenCount) return;
+      if (!message.tokenCount || !chatRun?.targetTokenCount) return;
       if (
         message.role === 'assistant' &&
-        message.tokenCount >= loaderData?.targetTokenCount
+        message.tokenCount >= chatRun?.targetTokenCount
       ) {
         setChatOver(true);
       }
     });
   };
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    const currentMessage = { role: 'user', content: message || '' };
+    setChatRun((chatRun) => {
+      if (!chatRun) return null;
+      chatRun.messages.push(currentMessage);
+      return chatRun;
+    });
+    submit(event.currentTarget, { replace: true });
+  }
 
   return (
     <>
@@ -169,9 +176,9 @@ export default function ChatRun() {
             className='flex flex-col p-2 w-full gap-2'
             ref={scrollRef as any}
           >
-            {loaderData &&
-              loaderData.messages &&
-              loaderData.messages.map((message, index) =>
+            {chatRun &&
+              chatRun.messages &&
+              chatRun.messages.map((message, index) =>
                 renderMessages(message, index)
               )}
             {navigation.state === 'submitting' && renderLoadingMessage()}
@@ -182,18 +189,22 @@ export default function ChatRun() {
           action={`/chat-run/${routeParams.runId}`}
           className='flex flex-row border-2 rounded'
           style={{ height: '7%' }}
+          onSubmit={handleSubmit}
         >
           {chatOver === true ? (
             <div className='w-full min-h-full'>
               {copied ? (
-                <button className='w-full min-h-full bg-blue-500 text-white font-bold rounded'>
+                <button
+                  className='w-full min-h-full bg-blue-500 text-white font-bold rounded'
+                  disabled
+                >
                   Successfully copied! You can now close this popup
                 </button>
               ) : (
                 <CopyToClipboard
                   text={
-                    loaderData?.messages[loaderData?.messages.length - 1]
-                      .content || ''
+                    chatRun?.messages[chatRun?.messages.length - 1].content ||
+                    ''
                   }
                   onCopy={() => setCopied(true)}
                 >

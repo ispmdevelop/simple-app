@@ -72,8 +72,6 @@ export async function updateChatRun(
   chatRun: ChatRun
 ): Promise<ChatRun | null> {
   try {
-    console.log('chatRun', chatRun);
-    console.log('id', id);
     await axios.put(
       `${SUPABASE_URL}/chat_run?id=eq.${id}`,
       { ...chatRun, id },
@@ -83,7 +81,7 @@ export async function updateChatRun(
     );
     const data = await getChatRunsById(id);
     return data;
-  } catch (error: { message: string }) {
+  } catch (error) {
     throw new Error(`Error fetching chatRuns: ${error}`);
   }
 }

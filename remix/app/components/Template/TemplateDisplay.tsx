@@ -22,15 +22,6 @@ export default function TemplateDisplay(props: TemplateDisplayProps) {
     (template) => template.id == selectedTemplateId
   );
 
-  useEffect(() => {
-    console.log('Change copied!', copied);
-    if (copied) {
-      setTimeout(() => {
-        setCopied(false);
-      }, 1500);
-    }
-  }, [copied]);
-
   return (
     <div id='template-display' className='w-full mt-4'>
       <h1 className='text-3xl text-bold text-center mb-3'>

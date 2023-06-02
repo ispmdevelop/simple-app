@@ -17,21 +17,9 @@ interface FormTemplate {
 }
 
 export default function TemplateForm(props: TemplateFormProps) {
-  const {
-    templates,
-    setTemplateSelected,
-    setShowResult,
-    showResult,
-    selectedTemplateId,
-  } = props;
-
-  const capitalize = (str: string) => {
-    if (!str || str.length <= 0) return str;
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  };
+  const { templates, setTemplateSelected, selectedTemplateId } = props;
 
   const handleSelectedTemplateId = (templateId: string) => {
-    console.log('selected template id', templateId);
     setTemplateSelected(templateId);
   };
 
