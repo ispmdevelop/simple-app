@@ -5,7 +5,6 @@ import { Form, useActionData, useSubmit } from '@remix-run/react';
 export type FormModalTemplate = {
   id: string;
   name: string;
-  body: string;
   preview: string;
   initialPrompt: string;
 };

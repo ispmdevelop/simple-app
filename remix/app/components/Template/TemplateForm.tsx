@@ -11,7 +11,6 @@ interface TemplateFormProps {
 
 interface FormTemplate {
   id: string;
-  body: string;
   name: string;
   preview: string;
   initialPrompt: string;

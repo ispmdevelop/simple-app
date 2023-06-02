@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button, buttonVariants } from '../../components/ui/button';
+import { Link } from '@remix-run/react';
 
 type TemplateDisplayProps = {
   templates: DisplayTemplate[];
@@ -15,11 +16,7 @@ type DisplayTemplate = {
 
 export default function TemplateDisplay(props: TemplateDisplayProps) {
   const { templates, selectedTemplateId, showResult } = props;
-
-  const [response, setResponse] = useState('');
-
   const [copied, setCopied] = useState(false);
-
   const selectedTemplate = templates.find(
     (template) => template.id == selectedTemplateId
   );
@@ -48,15 +45,19 @@ export default function TemplateDisplay(props: TemplateDisplayProps) {
           value={selectedTemplate?.preview || ''}
         />
       </div>
-      <div className='w-full flex items-center' style={{ height: '10vh' }}>
-        <Button
-          className={`${buttonVariants({
-            variant: 'outline',
-          })} bg-blue-700 text-white mx-auto hover:bg-blue-500`}
-        >
-          Have AirChat Customize This Template
-        </Button>
-      </div>
+      {selectedTemplateId && (
+        <div className='w-full flex items-center' style={{ height: '10vh' }}>
+          <Link className='mx-auto' to={`/chat/${selectedTemplateId}`}>
+            <Button
+              className={`${buttonVariants({
+                variant: 'outline',
+              })} bg-blue-700 text-white hover:bg-blue-500`}
+            >
+              Have AirChat Customize This Template
+            </Button>
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

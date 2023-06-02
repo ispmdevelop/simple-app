@@ -10,6 +10,7 @@ import {
   updateTemplate,
   getTemplates,
 } from '~/models/template.server';
+import { Link } from '@remix-run/react';
 
 export async function action({ request, params }: ActionArgs) {
   try {
@@ -187,12 +188,19 @@ export default function TemplateAdmin() {
     <div className='flex flex-col gap-5 mx-5'>
       <h1 className='text-2xl text-center mt-5 font-bold'>Template Admin</h1>
       {/* Button to trigger the modal */}
-      <button
-        className='bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded'
-        onClick={handleOpenModalForCreate}
-      >
-        + Create Template
-      </button>
+      <div className='flex flex-row gap-5'>
+        <Link className='w-6/12' to='/'>
+          <button className='w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded '>
+            Back To App
+          </button>
+        </Link>
+        <button
+          className='bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-6/12'
+          onClick={handleOpenModalForCreate}
+        >
+          + Create Template
+        </button>
+      </div>
       {templates && generateTable()}
       <TemplateFormModal
         showModal={showModal}
