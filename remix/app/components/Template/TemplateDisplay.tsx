@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button, buttonVariants } from '../../components/ui/button';
-import { Link } from '@remix-run/react';
+import { Link, useNavigation } from '@remix-run/react';
 
 type TemplateDisplayProps = {
   templates: DisplayTemplate[];
@@ -17,6 +17,7 @@ type DisplayTemplate = {
 export default function TemplateDisplay(props: TemplateDisplayProps) {
   const { templates, selectedTemplateId, showResult } = props;
   const [copied, setCopied] = useState(false);
+  const navigation = useNavigation();
   const selectedTemplate = templates.find(
     (template) => template.id == selectedTemplateId
   );
@@ -53,7 +54,9 @@ export default function TemplateDisplay(props: TemplateDisplayProps) {
                 variant: 'outline',
               })} bg-blue-700 text-white hover:bg-blue-500`}
             >
-              Have AirChat Customize This Template
+              {navigation.state === 'loading'
+                ? 'Loading AI chat...'
+                : 'Have AirChat Customize This Template'}
             </Button>
           </Link>
         </div>

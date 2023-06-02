@@ -37,7 +37,7 @@ export async function getTemplatesById(id: string): Promise<Template | null> {
       }
     );
 
-    return (response.data as Template) || null;
+    return (response.data[0] as Template) || null;
   } catch (error) {
     throw new Error(`Error fetching templates: ${error}`);
   }
@@ -69,8 +69,6 @@ export async function updateTemplate(
   template: Template
 ): Promise<Template | null> {
   try {
-    console.log('template', template);
-    console.log('id', id);
     await axios.put(
       `${SUPABASE_URL}/template?id=eq.${id}`,
       { ...template, id },

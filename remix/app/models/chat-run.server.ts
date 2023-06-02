@@ -1,7 +1,13 @@
-import { createClient } from '@supabase/supabase-js';
+import axios from 'axios';
+import { v4 as uuidGenerator } from 'uuid';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_API_KEY = process.env.SUPABASE_SERVICE_ROL_KEY || '';
+
+const supaHeaders = {
+  Authorization: `Bearer ${SUPABASE_API_KEY}`,
+  apiKey: SUPABASE_API_KEY,
+};
 
 export interface Message {
   role: string;
@@ -16,80 +22,80 @@ export interface ChatRun {
 }
 
 export async function getChatRuns(): Promise<ChatRun[] | null> {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_API_KEY);
+  try {
+    const response = await axios.get(`${SUPABASE_URL}/chat_run`, {
+      headers: { ...supaHeaders },
+    });
 
-  const { data, error } = await supabase.from('chat_run').select('*');
-
-  if (error) {
-    throw new Error(`Error fetching chatRun: ${error.message}`);
+    return (response.data as ChatRun[]) || null;
+  } catch (error) {
+    throw new Error(`Error fetching chatRuns: ${error}`);
   }
-
-  return (data as ChatRun[]) || null;
 }
 
 export async function getChatRunsById(id: string): Promise<ChatRun | null> {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_API_KEY);
+  try {
+    const response = await axios.get(
+      `${SUPABASE_URL}/chat_run?id=eq.${id}&select=*`,
+      {
+        headers: { ...supaHeaders },
+      }
+    );
 
-  const { data, error } = await supabase
-    .from('chat_run')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (error) {
-    throw new Error(`Error fetching chatRun by Id: ${error.message}`);
+    return (response.data[0] as ChatRun) || null;
+  } catch (error) {
+    throw new Error(`Error fetching chatRuns: ${error}`);
   }
-
-  return (data as ChatRun) || null;
 }
 
 export async function createChatRun(chatRun: ChatRun): Promise<ChatRun | null> {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_API_KEY);
+  try {
+    const uuid = uuidGenerator();
+    await axios.post(
+      `${SUPABASE_URL}/chat_run`,
+      { ...chatRun, id: uuid },
+      {
+        headers: { ...supaHeaders },
+      }
+    );
 
-  const { data, error } = await supabase
-    .from('chat_run')
-    .insert([chatRun])
-    .select()
-    .single();
+    const data = await getChatRunsById(uuid);
 
-  if (error) {
-    throw new Error(`Error creating chatRun: ${error.message}`);
+    return (data as ChatRun) || null;
+  } catch (error) {
+    throw new Error(`Error fetching chatRuns: ${error}`);
   }
-
-  return (data as ChatRun) || null;
 }
 
 export async function updateChatRun(
   id: string,
   chatRun: ChatRun
 ): Promise<ChatRun | null> {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_API_KEY);
-
-  const { data, error } = await supabase
-    .from('chat_run')
-    .update([chatRun])
-    .eq('id', id)
-    .select()
-    .single();
-
-  if (error) {
-    throw new Error(`Error updating chatRun: ${error.message}`);
+  try {
+    console.log('chatRun', chatRun);
+    console.log('id', id);
+    await axios.put(
+      `${SUPABASE_URL}/chat_run?id=eq.${id}`,
+      { ...chatRun, id },
+      {
+        headers: { ...supaHeaders },
+      }
+    );
+    const data = await getChatRunsById(id);
+    return data;
+  } catch (error: { message: string }) {
+    throw new Error(`Error fetching chatRuns: ${error}`);
   }
-
-  return (data as ChatRun) || null;
 }
 
 export async function deleteChatRun(id: string): Promise<boolean> {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_API_KEY);
+  try {
+    await axios.delete(`${SUPABASE_URL}/chat_run?id=eq.${id}`, {
+      headers: { ...supaHeaders },
+    });
 
-  const { error } = await supabase
-    .from<'chatRun', ChatRun>('chatRun')
-    .delete()
-    .match({ id });
-
-  if (error) {
-    throw new Error(`Error deleting chatRun: ${error.message}`);
+    return true;
+  } catch (error) {
+    throw new Error(`Error fetching chatRuns: ${error}`);
   }
-
-  return true;
 }
