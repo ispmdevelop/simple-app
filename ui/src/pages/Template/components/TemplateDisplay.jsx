@@ -60,7 +60,6 @@ export default function TemplateDisplay(props) {
   };
 
   useEffect(() => {
-    console.log('Change copied!', copied);
     if (copied) {
       setTimeout(() => {
         setCopied(false);
