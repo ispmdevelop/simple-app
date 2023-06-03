@@ -92,11 +92,19 @@ export default function ChatRun() {
     scrollRef.current?.scrollIntoView(false);
   }, [navigation.state]);
 
-  const renderMessages = (message: ChatRunMessage, index: number) => {
+  const renderMessages = (
+    message: ChatRunMessage,
+    index: number,
+    length: number
+  ) => {
     if (index === 0) return null;
     if (message.role === 'user') {
       return (
-        <div className='h-fit' key={`gtp-message-${index}`}>
+        <div
+          className='h-fit'
+          key={`gtp-message-${index}`}
+          ref={index === length - 1 ? (scrollRef as any) : null}
+        >
           <SentMessage index={index} text={message.content} />
         </div>
       );
@@ -106,7 +114,10 @@ export default function ChatRun() {
           className='flex flex-row h-fit gap-1 md:gap-0'
           key={`gtp-message-${index}`}
         >
-          <Avatar className='mt-auto mr-2'>
+          <Avatar
+            className='mt-auto mr-2'
+            ref={index === length - 1 ? (scrollRef as any) : null}
+          >
             <AvatarImage src={airLogo} />
             <AvatarFallback className='bg-gray-500  text-white'>
               S
@@ -167,14 +178,11 @@ export default function ChatRun() {
           className='flex flex-col gap-2 overflow-y-auto border-2 px-2 py-1 rounded'
           style={{ height: '94%' }}
         >
-          <div
-            className='flex flex-col p-2 w-full gap-2'
-            ref={scrollRef as any}
-          >
+          <div className='flex flex-col p-2 w-full gap-2'>
             {chatRun &&
               chatRun.messages &&
               chatRun.messages.map((message, index) =>
-                renderMessages(message, index)
+                renderMessages(message, index, chatRun.messages.length)
               )}
             {navigation.state === 'submitting' && renderLoadingMessage()}
           </div>

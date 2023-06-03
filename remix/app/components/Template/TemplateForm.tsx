@@ -45,15 +45,15 @@ export default function TemplateForm(props: TemplateFormProps) {
             return (
               <TableRow
                 key={template.id}
-                className={`table-row`}
+                className={`table-row hover:cursor-pointer`}
                 onClick={(event) => handleSelectedTemplateId(template.id)}
               >
                 <TableCell
                   className={`font-medium table-cell hover:bg-blue-50 ${
-                    checked ? 'bg-blue-50 border-2 border-b-blue-500' : ''
+                    checked ? 'bg-blue-50' : ''
                   }`}
                 >
-                  {template.name}
+                  <button>{template.name}</button>
                 </TableCell>
               </TableRow>
             );
