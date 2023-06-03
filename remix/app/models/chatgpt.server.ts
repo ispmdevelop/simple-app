@@ -11,13 +11,17 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration);
 
+const temperature = process.env.OPEN_AI_TEMPERATURE || 0;
+const model = process.env.OPEN_AI_MODEL || '';
+
 export async function chatCompletion(
   messages: ChatCompletionRequestMessage[]
 ): Promise<CreateChatCompletionResponse> {
   try {
     const response = await openai.createChatCompletion({
-      model: 'gpt-3.5-turbo',
+      model,
       messages,
+      temperature: +temperature,
     });
     return response.data;
   } catch (error) {
