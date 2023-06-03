@@ -57,6 +57,8 @@ export function SentMessage(props: MessageProps) {
       style={{
         backgroundColor: '#0078fe',
         padding: 10,
+        paddingLeft: 15,
+        paddingRight: 15,
         marginLeft: 'auto',
         marginTop: 5,
         width: 'fit-content',
@@ -87,6 +89,8 @@ export function ReceivedMessage(props: MessageProps) {
         backgroundColor: '#dedede',
         padding: 10,
         marginTop: 5,
+        paddingLeft: 15,
+        paddingRight: 15,
         marginRight: 'auto',
         marginLeft: '1%',
         width: 'fit-content',
