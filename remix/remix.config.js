@@ -6,6 +6,7 @@ module.exports = {
   // serverBuildPath: "build/index.js",
   // publicPath: "/build/",
   tailwind: true,
+  serverDependenciesToBundle: ['axios'],
   serverModuleFormat: 'cjs',
   future: {
     v2_errorBoundary: true,

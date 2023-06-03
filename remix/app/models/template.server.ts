@@ -24,7 +24,7 @@ export async function getTemplates(): Promise<Template[] | null> {
 
     return (response.data as Template[]) || null;
   } catch (error) {
-    throw new Error(`Error fetching templates: ${error}`);
+    throw new Error(`Error getTemplates: ${error}`);
   }
 }
 
@@ -39,7 +39,7 @@ export async function getTemplatesById(id: string): Promise<Template | null> {
 
     return (response.data[0] as Template) || null;
   } catch (error) {
-    throw new Error(`Error fetching templates: ${error}`);
+    throw new Error(`Error getTemplatesById: ${error}`);
   }
 }
 
@@ -60,7 +60,7 @@ export async function createTemplate(
 
     return (data as Template) || null;
   } catch (error) {
-    throw new Error(`Error fetching templates: ${error}`);
+    throw new Error(`Error createTemplate: ${error}`);
   }
 }
 
@@ -79,7 +79,7 @@ export async function updateTemplate(
     const data = await getTemplatesById(id);
     return data;
   } catch (error) {
-    throw new Error(`Error fetching templates: ${error}`);
+    throw new Error(`Error updateTemplate: ${error}`);
   }
 }
 
@@ -91,6 +91,6 @@ export async function deleteTemplate(id: string): Promise<boolean> {
 
     return true;
   } catch (error) {
-    throw new Error(`Error fetching templates: ${error}`);
+    throw new Error(`Error deleteTemplate: ${error}`);
   }
 }
