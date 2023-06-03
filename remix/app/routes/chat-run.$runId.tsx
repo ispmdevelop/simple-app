@@ -1,6 +1,7 @@
 import { ScrollArea } from '~/components/ui/scroll-area';
-import { Spinner } from '~/components/ui/spinner';
+import { TypingIndicator } from '~/components/ui/typing-indicator';
 import { Button } from '~/components/ui/button';
+import { ReceivedMessage, SentMessage } from '~/components/ui/message-bubble';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
 import type { ActionArgs, LoaderFunction } from '@remix-run/node';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
@@ -96,29 +97,22 @@ export default function ChatRun() {
     if (message.role === 'user') {
       return (
         <div className='h-fit' key={`gtp-message-${index}`}>
-          <div
-            className='bg-blue-500 w-fit p-2 rounded-lg ml-auto'
-            style={{ maxWidth: '70%' }}
-          >
-            <p className='whitespace-pre-line text-white'>{message.content}</p>
-          </div>
+          <SentMessage index={index} text={message.content} />
         </div>
       );
     } else {
       return (
-        <div className='flex flex-row h-fit' key={`gtp-message-${index}`}>
-          <Avatar className='my-auto mr-2'>
+        <div
+          className='flex flex-row h-fit gap-1 md:gap-0'
+          key={`gtp-message-${index}`}
+        >
+          <Avatar className='mt-auto mr-2'>
             <AvatarImage src={airLogo} />
             <AvatarFallback className='bg-gray-500  text-white'>
               S
             </AvatarFallback>
           </Avatar>
-          <div
-            className='bg-gray-200 w-fit p-2 rounded-lg'
-            style={{ maxWidth: '70%' }}
-          >
-            <p className='whitespace-pre-line'>{message.content}</p>
-          </div>
+          <ReceivedMessage index={index} text={message.content} />
         </div>
       );
     }
@@ -126,17 +120,18 @@ export default function ChatRun() {
 
   const renderLoadingMessage = () => {
     return (
-      <div className='flex flex-row h-fit' key={`gtp-message-loading`}>
-        <Avatar className='my-auto mr-2'>
+      <div
+        className='flex flex-row h-fit gap-1 md:gap-0'
+        key={`gtp-message-loading`}
+      >
+        <Avatar className='mt-auto mr-2'>
           <AvatarImage src={airLogo} />
           <AvatarFallback className='bg-gray-500  text-white'>S</AvatarFallback>
         </Avatar>
-        <div
-          className='bg-gray-200 w-fit p-2 rounded-lg'
-          style={{ maxWidth: '70%' }}
-        >
-          <Spinner />
-        </div>
+
+        <ReceivedMessage index={0} text={''}>
+          <TypingIndicator></TypingIndicator>
+        </ReceivedMessage>
       </div>
     );
   };
