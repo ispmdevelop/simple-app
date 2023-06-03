@@ -19,7 +19,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   if (!template) return redirect('/');
   const messages: ChatGPTMessage[] | undefined = [
     {
-      role: ChatCompletionRequestMessageRoleEnum.User,
+      role: ChatCompletionRequestMessageRoleEnum.System,
       content: template.initialPrompt,
     },
   ];

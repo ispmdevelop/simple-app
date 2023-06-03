@@ -83,6 +83,7 @@ export default function ChatRun() {
   useEffect(() => {
     setChatRun(loaderData);
     isFinalScriptResponse(loaderData?.messages || []);
+    scrollRef.current?.scrollIntoView(false);
   }, [loaderData]);
 
   useEffect(() => {
@@ -100,11 +101,7 @@ export default function ChatRun() {
     if (index === 0) return null;
     if (message.role === 'user') {
       return (
-        <div
-          className='h-fit'
-          key={`gtp-message-${index}`}
-          ref={index === length - 1 ? (scrollRef as any) : null}
-        >
+        <div className='h-fit' key={`gtp-message-${index}`}>
           <SentMessage index={index} text={message.content} />
         </div>
       );
@@ -114,10 +111,7 @@ export default function ChatRun() {
           className='flex flex-row h-fit gap-1 md:gap-0'
           key={`gtp-message-${index}`}
         >
-          <Avatar
-            className='mt-auto mr-2'
-            ref={index === length - 1 ? (scrollRef as any) : null}
-          >
+          <Avatar className='mt-auto mr-2'>
             <AvatarImage src={airLogo} />
             <AvatarFallback className='bg-gray-500  text-white'>
               S
@@ -186,6 +180,7 @@ export default function ChatRun() {
               )}
             {navigation.state === 'submitting' && renderLoadingMessage()}
           </div>
+          <div ref={scrollRef as any}></div>
         </ScrollArea>
         <Form
           method='post'
