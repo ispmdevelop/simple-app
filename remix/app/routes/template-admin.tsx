@@ -20,24 +20,19 @@ export async function action({ request, params }: ActionArgs) {
     const preview = form.get('preview');
     const initialPrompt = form.get('initialPrompt');
     const actionVerb = form.get('action');
+    const template = {
+      name,
+      preview,
+      initialPrompt,
+    } as Template;
     let response;
 
     if (actionVerb === 'create') {
-      const template = {
-        name,
-        preview,
-        initialPrompt,
-      } as Template;
       const createResponse = await createTemplate(template);
       response = createResponse;
     }
     if (actionVerb === 'update') {
       if (!id) return;
-      const template = {
-        name,
-        preview,
-        initialPrompt,
-      } as Template;
       const updateResponse = await updateTemplate(id + '', template);
       response = updateResponse;
     } else if (actionVerb === 'delete') {

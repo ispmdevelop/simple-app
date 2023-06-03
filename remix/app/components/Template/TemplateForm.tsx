@@ -12,8 +12,6 @@ import {
 interface TemplateFormProps {
   templates: FormTemplate[];
   setTemplateSelected: (templateId: string) => void;
-  setShowResult: (value: boolean) => void;
-  showResult: boolean;
   selectedTemplateId: string | null;
 }
 

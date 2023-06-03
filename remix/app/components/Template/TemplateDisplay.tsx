@@ -1,11 +1,9 @@
-import { useState, useEffect } from 'react';
 import { Button, buttonVariants } from '../../components/ui/button';
 import { Link, useNavigation } from '@remix-run/react';
 
 type TemplateDisplayProps = {
   templates: DisplayTemplate[];
   selectedTemplateId: string | null;
-  showResult: boolean;
 };
 
 type DisplayTemplate = {
@@ -15,8 +13,7 @@ type DisplayTemplate = {
 };
 
 export default function TemplateDisplay(props: TemplateDisplayProps) {
-  const { templates, selectedTemplateId, showResult } = props;
-  const [copied, setCopied] = useState(false);
+  const { templates, selectedTemplateId } = props;
   const navigation = useNavigation();
   const selectedTemplate = templates.find(
     (template) => template.id == selectedTemplateId
