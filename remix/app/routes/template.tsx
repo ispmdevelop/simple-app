@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLoaderData } from '@remix-run/react';
+import { useLoaderData, useSearchParams } from '@remix-run/react';
 import type { LoaderArgs, LoaderFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import TemplateDisplay from '../components/Template/TemplateDisplay';
@@ -43,6 +43,15 @@ export default function Template() {
     null
   );
   const [error, setError] = useState<string | null>('');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('error')) {
+      setError(searchParams.get('error') ?? '');
+    } else {
+      setError('');
+    }
+  }, []);
 
   useEffect(() => {
     if (loaderData.error === false) {
@@ -62,27 +71,42 @@ export default function Template() {
     if (!selectedTemplate) return;
   };
 
+  const getURLErrorMessage = () => {
+    const error = searchParams.get('error');
+    if (!error) return '';
+    return (
+      <div>
+        <p className='text-red-500'>{searchParams.get('error')}</p>
+      </div>
+    );
+  };
+
   return (
-    <div className='flex flex-col md:flex-row xs:flex-col'>
-      {error && error.length > 0 ? (
-        <div
-          className='bg-red-50 border-l-4 border-red-500 text-red-700 p-4 w-full'
-          role='alert'
-        >
-          <p className='font-bold'>Error</p>
-          <p>{error}</p>
+    <>
+      <div className='flex flex-col md:flex-row xs:flex-col'>
+        {error && error.length > 0 ? (
+          <div
+            className='bg-red-50 border-l-4 border-red-500 text-red-700 p-4 w-full'
+            role='alert'
+          >
+            <p className='font-bold'>Error</p>
+            <p>{error}</p>
+          </div>
+        ) : (
+          <TemplateForm
+            templates={templates}
+            selectedTemplateId={selectedTemplateId}
+            setTemplateSelected={handleSelectedTemplateId}
+          />
+        )}
+        <div className='w-full'>
+          <TemplateDisplay
+            templates={templates}
+            selectedTemplateId={selectedTemplateId}
+          />
+          <div className='text-center'>{getURLErrorMessage()}</div>
         </div>
-      ) : (
-        <TemplateForm
-          templates={templates}
-          selectedTemplateId={selectedTemplateId}
-          setTemplateSelected={handleSelectedTemplateId}
-        />
-      )}
-      <TemplateDisplay
-        templates={templates}
-        selectedTemplateId={selectedTemplateId}
-      />
-    </div>
+      </div>
+    </>
   );
 }
